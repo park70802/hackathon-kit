@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Copy only the local AGENTS.md and bundled repo-local skills to a task root.
+"""Copy AGENTS.md, bundled Codex Skills, and PROGRESS.md into a task root.
 
-No network, subprocess, git operations, or overwrite behavior.
+No network, subprocess, git operations, or overwriting existing files.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent.parent
 SKILLS_ROOT = SOURCE / ".agents" / "skills"
+PROGRESS_TEMPLATE = SOURCE / "templates" / "PROGRESS.md"
 
 
 def plan_install(target: Path) -> list[tuple[Path, Path]]:
@@ -20,8 +21,12 @@ def plan_install(target: Path) -> list[tuple[Path, Path]]:
         raise ValueError(f"대상 폴더가 없습니다: {target}")
 
     sources = [(SOURCE / "AGENTS.md", target / "AGENTS.md")]
-    sources.extend((skill, target / ".agents" / "skills" / skill.name)
-                   for skill in sorted(SKILLS_ROOT.iterdir()) if skill.is_dir())
+    sources.extend(
+        (skill, target / ".agents" / "skills" / skill.name)
+        for skill in sorted(SKILLS_ROOT.iterdir())
+        if skill.is_dir()
+    )
+    sources.append((PROGRESS_TEMPLATE, target / "PROGRESS.md"))
     for src, _ in sources:
         if not src.exists():
             raise ValueError(f"원본 파일이 없습니다: {src}")
@@ -49,7 +54,9 @@ def install(target: Path, *, dry_run: bool = False) -> list[Path]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Codex 지침/Skill 로컬 복사 (기존 파일 덮어쓰기 없음)")
+    parser = argparse.ArgumentParser(
+        description="Codex 지침, Skill 및 PROGRESS.md 복사 (기존 파일 덮어쓰기 없음)"
+    )
     parser.add_argument("--target", required=True, type=Path, help="실제 과제 프로젝트 루트")
     parser.add_argument("--dry-run", action="store_true", help="복사하지 않고 대상 경로만 확인")
     args = parser.parse_args()
