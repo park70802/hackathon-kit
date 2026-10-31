@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy AGENTS.md, bundled Codex Skills, and PROGRESS.md into a task root.
+"""Copy AGENTS.md, bundled Codex Skills, and progress/web spec templates.
 
 No network, subprocess, git operations, or overwriting existing files.
 """
@@ -13,6 +13,7 @@ from pathlib import Path
 SOURCE = Path(__file__).resolve().parent.parent
 SKILLS_ROOT = SOURCE / ".agents" / "skills"
 PROGRESS_TEMPLATE = SOURCE / "templates" / "PROGRESS.md"
+WEB_SPEC_TEMPLATE = SOURCE / "templates" / "WEB_SPEC.md"
 
 
 def plan_install(target: Path) -> list[tuple[Path, Path]]:
@@ -27,6 +28,9 @@ def plan_install(target: Path) -> list[tuple[Path, Path]]:
         if skill.is_dir()
     )
     sources.append((PROGRESS_TEMPLATE, target / "PROGRESS.md"))
+    # Keep the web spec as a reusable template. Only Codex creates WEB_SPEC.md
+    # in the project root when the actual task requires a web UI.
+    sources.append((WEB_SPEC_TEMPLATE, target / ".agents" / "templates" / "WEB_SPEC.md"))
     for src, _ in sources:
         if not src.exists():
             raise ValueError(f"원본 파일이 없습니다: {src}")
@@ -55,7 +59,7 @@ def install(target: Path, *, dry_run: bool = False) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Codex 지침, Skill 및 PROGRESS.md 복사 (기존 파일 덮어쓰기 없음)"
+        description="Codex 지침, Skill, PROGRESS.md 및 웹 설계 템플릿 복사 (기존 파일 덮어쓰기 없음)"
     )
     parser.add_argument("--target", required=True, type=Path, help="실제 과제 프로젝트 루트")
     parser.add_argument("--dry-run", action="store_true", help="복사하지 않고 대상 경로만 확인")
